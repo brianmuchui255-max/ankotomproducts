@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANKOTOM MEGA</title>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#f5f5f5}
+.top{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold;font-size:18px}
+.top span{color:#00ff00}
+.searchbox{padding:10px;text-align:center}
+.searchbox input{width:90%;padding:12px;border-radius:20px;border:1px solid #ccc}
+.cats{text-align:center;padding:5px}
+.cats button{margin:3px;padding:8px 12px;border-radius:20px;border:none;background:#ddd}
+.cats button.active{background:#000;color:#fff}
+#grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+.prod{background:#fff;padding:10px;border-radius:10px;text-align:center}
+.prod button{background:#000;color:#fff;padding:8px;width:100%;border:none;border-radius:5px;margin-top:5px}
+.cartBar{position:fixed;bottom:0;left:0;right:0;background:#000;color:#fff;padding:15px;text-align:center}
+#cartModal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:100}
+#cartInner{background:#fff;margin:20px;padding:20px;border-radius:15px;max-height:90vh;overflow:auto}
+.till{border:1px dashed #000;padding:10px;margin:10px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="top">ANKOTOM MEGA <span> STK + ADMIN</span></div>
+<div class="searchbox"><input id="search" placeholder="Search shoes, clothes..." oninput="render()"></div>
+<div class="cats"><button class="active" onclick="setCat('All',this)">All</button> <button onclick="setCat('Shoes',this)">Shoes</button> <button onclick="setCat('Clothes',this)">Clothes</button></div>
+<div id="grid"></div>
+<div class="cartBar"><div><b id="cartCount">0 items</b> - <span id="cartTotal">KES 0</span> <button onclick="openCart()" style="background:#00c853;color:#fff;border:none;padding:8px 15px;border-radius:20px;margin-left:10px">View Cart</button></div></div>
+
+<div id="cartModal"><div id="cartInner"><h2>Checkout</h2>
+<div id="cartItems"></div>
+<select id="location" onchange="updateTotal()"><option value="0">Select Location - Maua (Free)</option><option value="200">Meru Town +200</option><option value="300">Nairobi +300</option></select>
+<div style="display:flex;justify-content:space-between;margin:10px 0"><span>Subtotal + Delivery</span><b id="finalTotal">KES 0</b></div>
+<div class="till"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png" style="height:25px"><br>Pay via M-Pesa STK</div>
+<input id="cName" placeholder="Full Name" style="width:100%;padding:12px;margin:5px 0"><input id="cPhone" placeholder="M-Pesa Phone 07..." style="width:100%;padding:12px;margin:5px 0">
+<button onclick="paySTK()" id="payBtn" style="width:100%;background:#00c853;color:#fff;padding:15px;border:none;border-radius:10px;font-weight:bold;font-size:16px">LIPA NA M-PESA</button>
+<button onclick="closeCart()" style="width:100%;background:#ddd;padding:10px;margin-top:10px;border:none;border-radius:10px">Close</button>
+</div></div>
+
+<script>
+let cat='All';
