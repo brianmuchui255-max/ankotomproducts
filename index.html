@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ankotom Mega Store - Everything</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:#f5f5f7;color:#111}
+.top{background:#000;color:#fff;padding:12px;text-align:center;font-weight:900;letter-spacing:1px;position:sticky;top:0;z-index:100}
+.top span{color:#00ff88}
+.searchbox{padding:10px;background:#fff;position:sticky;top:44px;z-index:99;box-shadow:0 2px 10px #0001}
+.searchbox input{width:100%;padding:14px 18px;border-radius:30px;border:1.5px solid #ddd;font-size:16px;outline:none}
+.cats{display:flex;gap:8px;overflow:auto;padding:12px 10px;white-space:nowrap}
+.cats button{padding:10px 18px;border-radius:30px;border:1px solid #ddd;background:#fff;font-weight:700;cursor:pointer}
+.cats button.active{background:#000;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+@media(min-width:600px){.grid{grid-template-columns:1fr 1fr 1fr 1fr}}
+.prod{background:#fff;border-radius:18px;padding:10px;box-shadow:0 2px 12px #0000a;border:1px solid #eee}
+.prod img{width:100%;height:120px;object-fit:cover;border-radius:12px}
+.prod h4{margin:8px 0 2px;font-size:13px;height:32px;overflow:hidden}
+.price{color:#00a651;font-weight:900}.old{color:#999;text-decoration:line-through;font-size:11px}
+.add{width:100%;padding:10px;border-radius:20px;border:none;background:#000;color:#fff;font-weight:800;margin-top:6px;cursor:pointer}
+.cartBar{position:fixed;bottom:0;left:0;right:0;background:#000;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-radius:24px 24px 0 0;z-index:200}
+.cartBar button{background:#00ff88;color:#000;border:none;padding:12px 24px;border-radius:30px;font-weight:900}
+#cartModal{display:none;position:fixed;inset:0;background:#0009;z-index:300;padding:20px}
+#cartInner{background:#fff;border-radius:24px;max-width:500px;margin:20px auto;padding:20px;max-height:90vh;overflow:auto}
+.till{background:#e8fff0;border:1.5px dashed #00a651;border-radius:12px;padding:10px;text-align:center;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="top">ANKOTOM MEGA STORE <span>TILL 0716686968</span></div>
+<div class="searchbox"><input id="search" placeholder="🔍 Search clothes, phones, shoes, books..." oninput="render()"></div>
+<div class="cats">
+<button class="active" onclick="setCat('All',this)">All</button>
+<button onclick="setCat('Clothes',this)">👕 Clothes</button>
+<button onclick="setCat('Shoes',this)">👟 Shoes</button>
+<button onclick="setCat('Phones',this)">📱 Phones</button>
+<button onclick="setCat('Earphones',this)">🎧 Earphones</button>
+<button onclick="setCat('Electronics',this)">🔌 Electronics</button>
+<button onclick="setCat('Books',this)">📚 Books</button>
+</div>
+<div class="grid" id="grid"></div>
+
+<div class="cartBar"><div><b id="cartCount">0 items</b> | <span id="cartTotal">Ksh 0</span></div><button onclick="openCart()">CART 🛒</button></div>
+
+<div id="cartModal"><div id="cartInner">
+<h2>Your Cart</h2><div id="cartItems"></div>
+<div class="till"><div style="font-size:11px">LIPA NA M-PESA BUY GOODS</div><b style="font-size:22px">0716686968</b><div style="font-size:11px">KE AUDIO ENTERPRISE</div></div>
+<input id="cName" placeholder="Your Name" style="width:100%;padding:14px;border-radius:12px;border:1px solid #ddd;margin:6px 0">
+<input id="cPhone" placeholder="M-Pesa Phone 07..." style="width:100%;padding:14px;border-radius:12px;border:1px solid #ddd;margin:6px 0">
+<button onclick="checkout()" style="width:100%;padding:16px;border-radius:30px;background:#00ff88;border:none;font-weight:900;font-size:16px">LIPA WITH M-PESA - STK PUSH</button>
+<button onclick="closeCart()" style="width:100%;padding:12px;margin-top:8px;border:none;background:#eee;border-radius:20px">Continue Shopping</button>
+</div></div>
+
+<script>
+let cat='All';
+let cart=[];
+const products=[
+{name:'Air Force 1 Shoes',price:2500,old:4000,cat:'Shoes',img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400'},
+{name:'Official T-Shirt Cotton',price:800,old:1200,cat:'Clothes',img:'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400'},
+{name:'Samsung A14 Phone',price:18500,old:22000,cat:'Phones',img:'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400'},
+{name:'Wireless Earbuds Pro 6',price:1499,old:3500,cat:'Earphones',img:'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400'},
+{name:'Bluetooth Speaker Bass',price:2200,old:3500,cat:'Electronics',img:'https://images.unsplash.com/photo-1608043152269-423dbba4e7e?w=400'},
+{name:'Hoodie Winter Warm',price:1800,old:2800,cat:'Clothes',img:'https://images.unsplash.com/photo-1556821840-3a372997d6be?w=400'},
+{name:'Smart Watch Series 8',price:3500,old:5000,cat:'Electronics',img:'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400'},
+{name:'Think Big Book - Ben Carson',price:950,old:1500,cat:'Books',img:'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400'},
+{name:'Laptop Stand Metal',price:1500,old:2200,cat:'Electronics',img:'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400'},
+{name:'Running Shoes Nike',price:3200,old:4500,cat:'Shoes',img:'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400'},
+{name:'iPhone 13 Cover',price:600,old:1000,cat:'Phones',img:'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=400'},
+{name:'Rich Dad Poor Dad Book',price:850,old:1200,cat:'Books',img:'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400'},
+];
+function setCat(c,btn){cat=c;document.querySelectorAll('.cats button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render()}
+function render(){
+ let s=document.getElementById('search').value.toLowerCase();
+ let f=products.filter(p=>(cat=='All'||p.cat==cat)&&p.name.toLowerCase().includes(s));
+ document.getElementById('grid').innerHTML=f.map((p,i)=>`
+  <div class="prod"><img src="${p.img}"><h4>${p.name}</h4><div><span class="old">Ksh ${p.old}</span> <span class="price">Ksh ${p.price}</span></div><button class="add" onclick="addToCart(${products.indexOf(p)})">Add +</button></div>
+ `).join('');
+}
+function addToCart(idx){cart.push(products[idx]);updateCart();if(navigator.vibrate)navigator.vibrate(50)}
+function updateCart(){document.getElementById('cartCount').innerText=cart.length+' items';let t=cart.reduce((a,b)=>a+b.price,0);document.getElementById('cartTotal').innerText='Ksh '+t}
+function openCart(){
+ document.getElementById('cartModal').style.display='block';
+ let t=cart.reduce((a,b)=>a+b.price,0);
+ document.getElementById('cartItems').innerHTML=cart.length?cart.map((p,i)=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee"><span>${p.name}</span><span>Ksh ${p.price}</span></div>`).join('')+`<div style="text-align:right;font-weight:900;padding:10px 0">Total: Ksh ${t}</div>`:'<p>Cart empty</p>';
+}
+function closeCart(){document.getElementById('cartModal').style.display='none'}
+function checkout(){
+ let n=document.getElementById('cName').value;let ph=document.getElementById('cPhone').value;
+ if(!n||ph.length<10){alert('Weka jina na namba');return}
+ let t=cart.reduce((a,b)=>a+b.price,0);
+ let msg=`*NEW MEGA ORDER*%0AName: ${n}%0APhone: ${ph}%0AItems: ${cart.map(p=>p.name).join(', ')}%0ATotal: Ksh ${t}%0ATill: 0716686968%0AVerify Payment on M-Pesa`;
+ window.open(`https://wa.me/254716686968?text=${msg}`,'_blank');
+}
+render();
+</script>
+</body>
+  </html>
