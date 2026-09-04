@@ -1,10 +1,34 @@
-// FREE M-Pesa STK - Add your Daraja keys in Netlify > Environment variables
 exports.handler = async (event) => {
-  const { phone, amount, name } = JSON.parse(event.body);
-  // TODO: Add your Daraja logic here after you give me keys
-  // For now it simulates success so UI works
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: `STK Push sent to ${phone} for Ksh ${amount}. Enter M-Pesa PIN. (Simulated - Add Daraja keys to make real)` })
-  };
+  try {
+    const { phone, amount } = JSON.parse(event.body);
+    if(!phone) return { statusCode: 400, body: "Phone required" };
+    
+    let phone254 = phone.toString().replace(/\s/g,"");
+    if(phone254.startsWith("0")) phone254 = "254" + phone254.slice(1);
+    if(phone254.startsWith("+")) phone254 = phone254.slice(1);
+    
+    const res = await fetch("https://payment.intasend.com/api/v1/payment/mpesa-stk-push/", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.INTASEND_SECRET_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        phone_number: phone254,
+        email: "orders@ankotom.co.ke",
+        amount: parseInt(amount) || 10,
+        narrative: "ANKOTOM Order",
+        api_ref: "ANKOTOM-" + Date.now()
+      })
+    });
+    
+    const data = await res.json();
+    console.log(data);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, data, message: "STK sent to " + phone254 })
+    };
+  } catch(e) {
+    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+  }
 };
