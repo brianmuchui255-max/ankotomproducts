@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANKOTOM MEGA - 1500 Products</title>
+<style>
+body{margin:0;font-family:Arial;background:#f5f5f5}
+.top{background:#000;color:#fff;padding:16px;text-align:center;font-weight:900;font-size:20px;position:sticky;top:0;z-index:100}
+.top span{color:#00ff88;font-size:13px;display:block}
+.searchbox{padding:12px;text-align:center;position:sticky;top:58px;background:#f5f5f5;z-index:99}
+.searchbox input{width:92%;padding:13px;border-radius:25px;border:1px solid #ccc}
+.cats{text-align:center;padding:8px;white-space:nowrap;overflow:auto;background:#fff;position:sticky;top:115px;z-index:98;border-bottom:1px solid #eee}
+.cats button{margin:3px;padding:8px 14px;border-radius:20px;border:none;background:#eee;font-weight:bold;font-size:12px}
+.cats button.active{background:#000;color:#fff}
+#grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;padding-bottom:90px}
+.prod{background:#fff;padding:10px;border-radius:12px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.1)}
+.prod b{font-size:13px;display:block;height:32px;overflow:hidden}
+.prod.price{color:#00a651;font-weight:900;margin:4px 0}
+.prod button{background:#000;color:#fff;padding:8px;width:100%;border:none;border-radius:7px;font-weight:bold;font-size:12px}
+.prod.cat{font-size:10px;color:#888;background:#f0f0f0;padding:2px 6px;border-radius:10px}
+.cartBar{position:fixed;bottom:0;left:0;right:0;background:#000;color:#fff;padding:14px;text-align:center;z-index:100}
+#cartModal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:999;overflow:auto}
+#cartInner{background:#fff;margin:10px;padding:18px;border-radius:15px}
+.countBar{text-align:center;padding:8px;background:#000;color:#fff;font-size:12px}
+</style></head>
+<body>
+<div class="top">ANKOTOM MEGA <span id="totalCount">Loading 1500 products...</span></div>
+<div class="searchbox"><input id="search" placeholder="Search 1500 items: iPhone, shoes, watch..." oninput="render()"></div>
+<div class="cats" id="cats"></div>
+<div class="countBar"><span id="showing">Showing 100 of 1500</span> - <a onclick="loadMore()" style="color:#00ff88;text-decoration:underline">Load More</a></div>
+<div id="grid"></div>
+<div class="cartBar"><span id="cartCount">0 items</span> - <span id="cartTotal">KES 0</span> <button onclick="openCart()" style="background:#00c853;color:#fff;border:none;padding:9px 18px;border-radius:20px;margin-left:8px;font-weight:bold">View Cart</button></div>
+
+<div id="cartModal"><div id="cartInner">
+<h2 style="margin:0">Checkout - <span id="cartLen">0</span> items</h2>
+<div id="cartItems" style="margin:10px 0;max-height:200px;overflow:auto;border:1px solid #eee;padding:10px;border-radius:8px"></div>
+<select id="location" onchange="updateTotal()" style="width:100%;padding:12px;border-radius:8px;margin:8px 0"><option value="0">Maua - Free</option><option value="200">Meru +200</option><option value="300">Nairobi +300</option><option value="350">Other +350</option></select>
+<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:900;margin:10px 0"><span>Total</span><b id="finalTotal">KES 0</b></div>
+<input id="cName" placeholder="Full Name" style="width:100%;padding:12px;margin:5px 0;border-radius:8px;border:1px solid #ccc">
+<input id="cPhone" placeholder="M-Pesa 07..." style="width:100%;padding:12px;margin:5px 0;border-radius:8px;border:1px solid #ccc">
+<button onclick="paySTK()" id="payBtn" style="width:100%;background:#00c853;color:#fff;padding:16px;border:none;border-radius:12px;font-weight:900;font-size:17px">LIPA NA M-PESA</button>
+<button onclick="closeCart()" style="width:100%;background:#eee;padding:12px;margin-top:10px;border:none;border-radius:10px">Continue Shopping</button>
+</div></div>
+
+<script>
+let cat='All';let cart=[];let showLimit=100;
+const categories=['All','Shoes','Clothes','Accessories','Electronics','Gadgets','Bags','Watches','Phones'];
+
+// GENERATE 1500 PRODUCTS AUTOMATICALLY
+const baseProducts={
+Shoes:['Nike Air Force','Jordan 4','Yeezy Boost','Air Max 90','Timberland Boot','Converse All Star','Adidas Samba','Puma RS','New Balance 550','Louboutin'],
+Clothes:['T-Shirt Anko','Hoodie','Cargo Pants','Jeans','Jacket','Sweatshirt','Shorts','Polo Shirt','Sweater','Tracksuit'],
+Accessories:['Cap','Sunglasses','Belt','Chain Gold','Bracelet','Beanie','Socks Pack','Wallet','Keychain','Bandana'],
+Electronics:['Bluetooth Speaker','Powerbank 20k','Earbuds','Smart Watch','LED TV 32"','Extension Cable','Charger Fast','Headphones','Ring Light','Microphone'],
+Gadgets:['Phone Holder','Tripod','Selfie Stick','USB Hub','Mouse Wireless','Keyboard RGB','Webcam HD','Lamp LED','Drone Mini','Gamepad'],
+Bags:['Backpack','Crossbag','Laptop Bag','Travel Bag','Waist Bag','Handbag','School Bag','Gym Bag','Tote Bag','Briefcase'],
+Watches:['Rolex Style','G-Shock','Smart Watch','Casio Vintage','Fossil Leather','Apple Watch','Chain Watch','Digital Watch','Luxury Watch','Sport Watch'],
+Phones:['iPhone 14 Case','Samsung Cover','Phone Glass','iPhone Charger','Tecno Cover','Infinix Case','AirPods Pro','Phone Stand','OTG Cable','Memory Card']
+};
+
+let products=[];
+let id=1;
+for(let c of Object.keys(baseProducts)){
+  for(let name of baseProducts[c]){
+    for(let v=1; v<=18; v++){ // 18 variants per name = ~1440 items
+      let price = 500 + Math.floor(Math.random()*8000);
+      price = Math.round(price/50)*50; // round
+      products.push({id:id++, name:`${name} ${v} ${c==='Phones'?'':''}`.trim() + (v>1?` V${v}`:''), price:price, cat:c});
+      if(products.length>=1500) break;
+    }
+    if(products.length>=1500) break;
+  }
+  if(products.length>=1500) break;
+}
+// Add extra random to reach exactly 1500
+while(products.length<1500){
+  let cats=Object.keys(baseProducts);
+  let rc=cats[Math.floor(Math.random()*cats.length)];
+  let bn=baseProducts[rc][Math.floor(Math.random()*baseProducts[rc].length)];
+  products.push({id:id++, name: bn+' Limited Edition', price: 800+Math.floor(Math.random()*5000), cat:rc});
+}
+
+document.getElementById('totalCount').innerText=products.length+' Products Available';
+document.getElementById('cats').innerHTML=categories.map(c=>`<button id="b${c}" class="${c==='All'?'active':''}" onclick="setCat('${c}')">${c}</button>`).join('');
+
+function setCat(c){
+cat=c;
+document.querySelectorAll('.cats button').forEach(b=>b.classList.remove('active'));
+document.getElementById('b'+c).classList.add('active');
+showLimit=100;
+render();
+}
+function getFiltered(){
+let s=document.getElementById('search').value.toLowerCase();
+return products.filter(p=>(cat==='All'||p.cat===cat)&&p.name.toLowerCase().includes(s));
+}
+function render(){
+let filtered=getFiltered();
+let toShow=filtered.slice(0,showLimit);
+let html='';
+for(let p of toShow){
+html+=`<div class="prod"><span class="cat">${p.cat}</span><b>${p.name}</b><div class="price">KES ${p.price.toLocaleString()}</div><button onclick="addToCart(${p.id})">Add to Cart</button></div>`;
+}
+if(filtered.length===0) html='<div style="grid-column:1/3;text-align:center;padding:40px">No products - try different search</div>';
+document.getElementById('grid').innerHTML=html;
+document.getElementById('showing').innerText=`Showing ${toShow.length} of ${filtered.length} (Total ${products.length})`;
+}
+function loadMore(){showLimit+=100;render();window.scrollBy(0,400);}
+function addToCart(id){
+let p=products.find(x=>x.id===id);
+cart.push(p);
+updateCart();
+let btn=event.target;let old=btn.innerText;btn.innerText='Added!';setTimeout(()=>btn.innerText=old,800);
+}
+function updateCart(){
+let sub=cart.reduce((a,b)=>a+b.price,0);
+document.getElementById('cartCount').innerText=cart.length+' items';
+document.getElementById('cartTotal').innerText='KES '+sub.toLocaleString();
+document.getElementById('cartLen').innerText=cart.length;
+updateTotal();
+}
+function updateTotal(){
+let sub=cart.reduce((a,b)=>a+b.price,0);
+let del=parseInt(document.getElementById('location').value)||0;
+document.getElementById('finalTotal').innerText='KES '+(sub+del).toLocaleString();
+document.getElementById('cartItems').innerHTML=cart.length===0?'Cart empty':cart.map(c=>c.name+' - '+c.price).join('<br>');
+}
+function openCart(){document.getElementById('cartModal').style.display='block';updateTotal();}
+function closeCart(){document.getElementById('cartModal').style.display='none';}
+async function paySTK(){
+let phone=document.getElementById('cPhone').value.trim();
+if(cart.length===0){alert('Cart empty');return;}
+if(!phone){alert('Enter M-Pesa 07...');return;}
+let btn=document.getElementById('payBtn');btn.innerText='Sending STK...';btn.disabled=true;
+let sub=cart.reduce((a,b)=>a+b.price,0);let del=parseInt(document.getElementById('location').value)||0;let amount=sub+del;if(amount<10)amount=10;
+try{
+let res=await fetch('/.netlify/functions/mpesa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,amount,name:document.getElementById('cName').value})});
+let d=await res.json();console.log(d);alert('✅ STK sent to '+phone+' - Check phone! KES '+amount);btn.innerText='STK Sent!';
+setTimeout(()=>{btn.innerText='LIPA NA M-PESA';btn.disabled=false;},4000);
+}catch(e){alert('Error '+e.message);btn.innerText='Try Again';btn.disabled=false;}
+}
+render();
+</script>
+</body></html>
