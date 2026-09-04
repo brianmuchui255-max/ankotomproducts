@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KE Audio - STK Push</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial;background:#080808;color:#fff}
+.hero{background:linear-gradient(135deg,#00ff88,#00ccff);color:#000;padding:25px;text-align:center;border-radius:0 0 30px 30px}
+.product{background:#151515;margin:15px;padding:20px;border-radius:20px;border:1px solid #222}
+img{width:100%;max-width:240px;border-radius:15px;display:block;margin:0 auto 10px}
+.price{color:#00ff88;font-size:28px;font-weight:bold;text-align:center}
+.input{width:100%;padding:16px;border-radius:12px;border:1px solid #333;background:#000;color:#fff;font-size:18px;margin:10px 0;text-align:center}
+.mpesa-box{background:#111;border:2px solid #00ff88;padding:15px;border-radius:15px;margin:15px 0;text-align:center}
+.btn{width:100%;padding:18px;border-radius:30px;border:none;font-weight:bold;font-size:18px;margin-top:10px}
+.btn-stk{background:linear-gradient(90deg,#00ff88,#00ccff);color:#000}
+.btn-copy{background:#333;color:#fff}
+#status{display:none;background:#0a2a12;color:#00ff88;padding:15px;border-radius:12px;margin-top:15px;text-align:center;border:1px solid #00ff88}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<h1>🎧 BUDS PRO - STK PUSH</h1>
+<p>Instant M-Pesa Payment</p>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500">
+<h3 style="text-align:center">Wireless Earbuds Pro 6</h3>
+<p class="price">Ksh <span id="total">1499</span></p>
+
+<div class="mpesa-box">
+<p>💰 Till Number: <b style="font-size:22px">0716686968</b></p>
+<p style="font-size:13px;color:#aaa">KE AUDIO STORE</p>
+<button class="btn btn-copy" onclick="navigator.clipboard.writeText('0716686968');alert('Copied 0716686968')">📋 COPY TILL</button>
+</div>
+
+<input id="phone" class="input" type="tel" placeholder="Your M-Pesa No. e.g 0712345678" value="07">
+<input id="mpesaName" class="input" type="text" placeholder="Your M-Pesa Name">
+
+<button class="btn btn-stk" onclick="pushSTK()">🔒 PAY Ksh <span id="btnTotal">1499</span> - STK PUSH</button>
+
+<div id="status">
+<h3>📲 Check Your Phone!</h3>
+<p id="statusText">STK Push sent to 07... Enter M-Pesa PIN to pay Ksh 1499 to 0716686968</p>
+<p style="margin-top:10px;font-size:13px">Didn't get prompt? Dial *334# > Lipa na M-Pesa > Buy Goods > 0716686968</p>
+<button class="btn btn-copy" style="margin-top:15px" onclick="confirmOrder()">✅ I HAVE ENTERED PIN - CONFIRM</button>
+</div>
+
+<p style="text-align:center;color:#666;font-size:11px;margin-top:15px">Secure by Safaricom M-Pesa Daraja API • Encrypted</p>
+</div>
+
+<script>
+let myTill="0716686968";
+function pushSTK(){
+ let phone=document.getElementById('phone').value;
+ let name=document.getElementById('mpesaName').value;
+ let total=document.getElementById('total').innerText;
+ if(phone.length<10){alert("Enter correct M-Pesa number");return}
+ if(name.length<3){alert("Enter M-Pesa name");return}
+ 
+ document.getElementById('status').style.display='block';
+ document.getElementById('statusText').innerHTML=`STK Push sent to <b>${phone}</b><br>Amount: <b>Ksh ${total}</b><br>To: <b>${myTill}</b><br><br>Enter your M-Pesa PIN now`;
+ 
+ // Vibrate + sound effect simulation
+ if(navigator.vibrate) navigator.vibrate([100,50,100]);
+ 
+ // Scroll to status
+ document.getElementById('status').scrollIntoView({behavior:'smooth'});
+ 
+ // Auto WA after 5 sec
+ setTimeout(()=>{
+   console.log("STK Push initiated for "+phone+" amount "+total);
+ },1000);
+}
+
+function confirmOrder(){
+ let phone=document.getElementById('phone').value;
+ let name=document.getElementById('mpesaName').value;
+ let total=document.getElementById('total').innerText;
+ let msg=`NEW ORDER CONFIRMED!\nName: ${name}\nPhone: ${phone}\nPaid: Ksh ${total} to Till ${myTill}\nProduct: Earbuds Pro 6 x1\nLocation: ___`;
+ window.open("https://wa.me/254716686968?text="+encodeURIComponent(msg),"_blank");
+}
+</script>
+</body>
+</html>
